@@ -13,6 +13,10 @@ contract CMCRank is usingOraclize {
     
     event Log(string text);
     
+    // Jan 1st, 2019
+    //uint public bettingOutcomeDate = 1546300800;
+    
+    // 03. Feb 2018. just for testing purposes. TODO: use real date for mainnet contract
     uint public bettingOutcomeDate = 1517692944;
     
 
@@ -48,12 +52,7 @@ contract CMCRank is usingOraclize {
 contract GolemIExecBet {
     
     // April 1st, 2018
-    //uint public bettingClosedDate = 1522540800;
-    // Jan 1st, 2019
-    //uint public bettingOutcomeDate = 1546300800;
-    
     uint public bettingClosedDate = 1522540800;
-    uint public bettingOutcomeDate = 1517692944;
 
     enum BetStatus { REQUESTED, ACCEPTED, CANCELED, COMPLETED }
     enum Pick { IEXEC, GOLEM } 
@@ -187,7 +186,12 @@ contract GolemIExecBet {
         
         if (b.state == BetStatus.REQUESTED) {
             msg.sender.transfer(b.amount);
-            addressToBet[msg.sender].state = BetStatus.CANCELED;
+
+            // Completly null struct, to enable a new bet request to be made. In the ACCEPTED case, this is not possible.
+            addressToBet[msg.sender] = Bet(/*amount*/ 0, /*BetStatus*/ BetStatus.REQUESTED, /* Pick*/ Pick.IEXEC, /*requestor*/ 0x0, 
+                            /*acceptor*/ 0x0, /*requestorWantsCancel*/ false, /*acceptorWantsCancel*/ false,
+                            /*requestorName*/ 0, /*acceptorName*/ 0);
+            
             BetCanceledEvent(msg.sender, 0x0);
         } else if ((!senderIsRequestor && b.requestorWantsCancel) || (senderIsRequestor && b.acceptorWantsCancel)) {
             uint amountPerPerson = b.amount / 2;
